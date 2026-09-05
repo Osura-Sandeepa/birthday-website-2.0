@@ -22,7 +22,7 @@ const PREFERS_REDUCED_MOTION = window.matchMedia(
 
 // 🎂 CHANGE THIS: replace with the birthday person's name.
 // Every place the name appears on the page reads from this one variable.
-const BIRTHDAY_PERSON_NAME = "Aria";
+const BIRTHDAY_PERSON_NAME = "Sachii";
 
 // The line typed out beneath the hero title once the site reveals itself.
 const HERO_TAGLINE = "Today the world gets to celebrate you all over again.";
