@@ -1,0 +1,939 @@
+/* ==================================================================
+   BIRTHDAY WEBSITE — STYLESHEET (premium edition)
+   Organized by section. Search the ALL-CAPS headers to jump around.
+   ================================================================== */
+
+/* ---------- 1. RESET & ROOT VARIABLES ---------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Premium night-sky palette — deep twilight base, jewel-toned accents.
+     Dark enough to let stars, fireworks and glow effects read as "magic". */
+  --midnight-900: #140c24;
+  --midnight-800: #1c1236;
+  --plum-deep: #33204f;
+  --magenta: #ff7bab;
+  --magenta-deep: #d24d84;
+  --gold: #f4c766;
+  --gold-soft: #ffe3ab;
+  --violet: #a682ff;
+  --ice: #bfe3ff;
+
+  --paper: #fdf9f5;              /* near-white, used for text on dark */
+  --text-soft: rgba(253, 249, 245, 0.72);
+  --text-faint: rgba(253, 249, 245, 0.5);
+
+  --glass-bg: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: rgba(20, 12, 36, 0.45);
+
+  --font-script: 'Great Vibes', cursive;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Quicksand', sans-serif;
+
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--paper);
+  overflow-x: hidden;
+  min-height: 100vh;
+
+  /* Animated deep-twilight gradient — slowly drifts for a "living" feel */
+  background: linear-gradient(
+    135deg,
+    var(--midnight-900),
+    var(--plum-deep) 45%,
+    #4a2360 70%,
+    #6e2a63 100%
+  );
+  background-size: 300% 300%;
+  animation: gradient-drift 22s ease infinite;
+}
+
+@keyframes gradient-drift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 2. LOADING SCREEN ---------- */
+
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--midnight-900);
+  transition: opacity 0.7s var(--ease-premium), visibility 0.7s var(--ease-premium);
+}
+
+#loading-screen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(244, 199, 102, 0.18);
+  border-top-color: var(--gold);
+  border-right-color: var(--magenta);
+  animation: ring-spin 1.1s linear infinite;
+}
+
+@keyframes ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+.loader__cake {
+  font-size: 1.9rem;
+  animation: cake-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cake-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.loader__text {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+
+.loader__dots span {
+  animation: dot-blink 1.4s ease-in-out infinite;
+  opacity: 0;
+}
+.loader__dots span:nth-child(1) { animation-delay: 0s; }
+.loader__dots span:nth-child(2) { animation-delay: 0.2s; }
+.loader__dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.loader__bar {
+  width: min(60vw, 220px);
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.loader__bar-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--magenta));
+  transition: width 1.6s var(--ease-premium);
+}
+
+/* ---------- 3. COUNTDOWN OVERLAY ---------- */
+
+#countdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: radial-gradient(circle at center, var(--plum-deep) 0%, var(--midnight-900) 100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s var(--ease-premium), visibility 0.8s var(--ease-premium);
+}
+
+#countdown-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+#countdown-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#countdown-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(4rem, 18vw, 9rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(244, 199, 102, 0.7), 0 0 70px rgba(244, 199, 102, 0.4);
+  animation: countdown-pop 0.9s var(--ease-premium);
+}
+
+@keyframes countdown-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  40%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.countdown-label {
+  color: var(--ice);
+  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+/* ---------- 4. STARFIELD ---------- */
+
+#stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Individual star elements are generated in JS with inline position/timing,
+   this class just defines their shared look + twinkle animation. */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--paper);
+  animation: twinkle ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
+/* ---------- 5. CANVASES: CONFETTI & FIREWORKS ---------- */
+
+#confetti-canvas,
+#fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+#fireworks-canvas {
+  z-index: 3; /* sits above stars/balloons but below foreground content sections isn't needed since content has its own stacking */
+}
+
+/* ---------- 6. FLOATING BALLOONS ---------- */
+
+#balloons {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.balloon {
+  position: absolute;
+  bottom: -20vh;
+  width: 60px;
+  height: 76px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0.8;
+  filter: drop-shadow(0 10px 15px rgba(20, 12, 36, 0.35));
+  animation: float-up linear infinite;
+}
+
+.balloon::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 1px;
+  height: 40px;
+  background: rgba(253, 249, 245, 0.3);
+  transform: translateX(-50%);
+}
+
+.balloon--1 { left: 8%;  background: linear-gradient(160deg, var(--magenta), var(--magenta-deep)); animation-duration: 16s; animation-delay: 0s; }
+.balloon--2 { left: 22%; background: linear-gradient(160deg, var(--ice), #8fb9e8);      animation-duration: 20s; animation-delay: 3s; width: 50px; height: 64px; }
+.balloon--3 { left: 45%; background: linear-gradient(160deg, var(--gold-soft), var(--gold)); animation-duration: 14s; animation-delay: 6s; width: 44px; height: 56px; }
+.balloon--4 { left: 65%; background: linear-gradient(160deg, var(--violet), #7a54d6); animation-duration: 22s; animation-delay: 1s; }
+.balloon--5 { left: 80%; background: linear-gradient(160deg, #ffcfa3, #ff9d6c);    animation-duration: 18s; animation-delay: 5s; width: 52px; height: 66px; }
+.balloon--6 { left: 92%; background: linear-gradient(160deg, var(--magenta), var(--violet)); animation-duration: 24s; animation-delay: 8s; width: 40px; height: 52px; }
+
+@keyframes float-up {
+  0%   { transform: translateY(0) translateX(0) rotate(-4deg); }
+  25%  { transform: translateY(-30vh) translateX(20px) rotate(4deg); }
+  50%  { transform: translateY(-60vh) translateX(-15px) rotate(-3deg); }
+  75%  { transform: translateY(-90vh) translateX(15px) rotate(3deg); }
+  100% { transform: translateY(-125vh) translateX(0) rotate(-4deg); }
+}
+
+/* ---------- 7. FLOATING HEARTS ---------- */
+
+#hearts {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Hearts are built from a rotated square with two circular "lobes" */
+.heart {
+  position: absolute;
+  bottom: -10vh;
+  width: 22px;
+  height: 22px;
+  background: var(--magenta);
+  opacity: 0.55;
+  transform: rotate(45deg);
+  animation: heart-rise linear infinite;
+}
+
+.heart::before,
+.heart::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: inherit;
+  border-radius: 50%;
+}
+
+.heart::before { left: -11px; top: 0; }
+.heart::after  { top: -11px; left: 0; }
+
+.heart--1 { left: 12%; background: var(--magenta);   animation-duration: 15s; animation-delay: 1s;  width: 16px; height: 16px; }
+.heart--2 { left: 35%; background: var(--gold);       animation-duration: 19s; animation-delay: 4s;  }
+.heart--3 { left: 55%; background: var(--violet);     animation-duration: 13s; animation-delay: 7s;  width: 14px; height: 14px; }
+.heart--4 { left: 73%; background: var(--ice);        animation-duration: 21s; animation-delay: 2s;  width: 18px; height: 18px; }
+.heart--5 { left: 88%; background: var(--magenta-deep); animation-duration: 17s; animation-delay: 9s; width: 15px; height: 15px; }
+
+.heart--1::before, .heart--1::after { width: 16px; height: 16px; }
+.heart--1::before { left: -8px; }
+.heart--1::after  { top: -8px; }
+.heart--3::before, .heart--3::after { width: 14px; height: 14px; }
+.heart--3::before { left: -7px; }
+.heart--3::after  { top: -7px; }
+.heart--4::before, .heart--4::after { width: 18px; height: 18px; }
+.heart--4::before { left: -9px; }
+.heart--4::after  { top: -9px; }
+.heart--5::before, .heart--5::after { width: 15px; height: 15px; }
+.heart--5::before { left: -7.5px; }
+.heart--5::after  { top: -7.5px; }
+
+@keyframes heart-rise {
+  0%   { transform: translateY(0) translateX(0) rotate(45deg); opacity: 0; }
+  10%  { opacity: 0.55; }
+  50%  { transform: translateY(-55vh) translateX(-18px) rotate(45deg); }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-115vh) translateX(12px) rotate(45deg); opacity: 0; }
+}
+
+/* ---------- 8. SHARED LAYOUT / TYPE HELPERS ---------- */
+
+#site-content {
+  position: relative;
+  z-index: 2;
+}
+
+section {
+  position: relative;
+  padding: 6rem 1.5rem;
+  max-width: 780px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin-bottom: 1.5rem;
+  color: var(--paper);
+}
+
+.section-title span {
+  font-family: var(--font-script);
+  font-size: 1.3em;
+  color: var(--magenta);
+}
+
+/* Glassmorphism surface, reused across message card / birthday card / gallery */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 50px var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ---------- 9. SCROLL-TRIGGERED REVEAL ANIMATIONS ---------- */
+
+[data-animate] {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.9s var(--ease-premium), transform 0.9s var(--ease-premium);
+}
+
+[data-animate].in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children of the gallery grid slightly for a cascading reveal */
+.gallery__grid [data-animate]:nth-child(1) { transition-delay: 0s; }
+.gallery__grid [data-animate]:nth-child(2) { transition-delay: 0.1s; }
+.gallery__grid [data-animate]:nth-child(3) { transition-delay: 0.2s; }
+.gallery__grid [data-animate]:nth-child(4) { transition-delay: 0.3s; }
+
+/* ---------- 10. HERO SECTION ---------- */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4rem;
+}
+
+.hero__eyebrow {
+  color: var(--text-soft);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  line-height: 1.15;
+  color: var(--paper);
+}
+
+.hero__name {
+  display: block;
+  font-family: var(--font-script);
+  font-size: 1.9em;
+  font-weight: 400;
+  color: var(--gold-soft);
+  margin-top: 0.2rem;
+
+  /* Glowing effect around the name */
+  text-shadow:
+    0 0 20px rgba(255, 123, 171, 0.5),
+    0 0 45px rgba(244, 199, 102, 0.45);
+  animation: name-glow 3.5s ease-in-out infinite;
+}
+
+@keyframes name-glow {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(255, 123, 171, 0.5), 0 0 45px rgba(244, 199, 102, 0.45);
+  }
+  50% {
+    text-shadow: 0 0 34px rgba(255, 123, 171, 0.75), 0 0 75px rgba(244, 199, 102, 0.7);
+  }
+}
+
+.hero__subtitle {
+  margin-top: 1.5rem;
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  max-width: 32ch;
+  min-height: 1.6em;
+}
+
+/* Typing effect cursor, blinks alongside the typed text */
+.typing-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--gold);
+  animation: cursor-blink 0.9s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.typing-cursor.is-done {
+  display: none;
+}
+
+.scroll-cue {
+  margin-top: 3.5rem;
+  width: 26px;
+  height: 42px;
+  border: 2px solid var(--text-soft);
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.scroll-cue:hover {
+  opacity: 1;
+  transform: translateY(2px);
+}
+
+.scroll-cue__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: scroll-dot 1.6s ease infinite;
+}
+
+@keyframes scroll-dot {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+
+/* ---------- 11. HEARTFELT MESSAGE SECTION ---------- */
+
+.message {
+  padding-top: 4rem;
+}
+
+.message__glow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 340px;
+  height: 340px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255, 123, 171, 0.25), transparent 70%);
+  filter: blur(20px);
+  z-index: -1;
+}
+
+.message__card {
+  padding: 2.5rem 2rem;
+}
+
+.message__text {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-soft);
+  max-width: 58ch;
+  margin: 0 auto;
+}
+
+/* ---------- 12. SURPRISE BUTTON + CARD ---------- */
+
+.surprise {
+  padding-top: 3rem;
+  padding-bottom: 5rem;
+}
+
+.surprise-btn {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--paper);
+  background: linear-gradient(135deg, var(--magenta), var(--magenta-deep));
+  border: none;
+  border-radius: 999px;
+  padding: 1rem 2.4rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(210, 77, 132, 0.4), 0 0 0 rgba(244, 199, 102, 0);
+  transition: transform 0.3s var(--ease-premium), box-shadow 0.4s var(--ease-premium), background 0.4s ease;
+}
+
+.surprise-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 14px 34px rgba(210, 77, 132, 0.5), 0 0 28px rgba(244, 199, 102, 0.55);
+  background: linear-gradient(135deg, var(--magenta-deep), var(--magenta));
+}
+
+.surprise-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.surprise-btn__shine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: skewX(-20deg);
+  animation: shine-sweep 3.2s ease-in-out infinite;
+}
+
+@keyframes shine-sweep {
+  0%   { left: -60%; }
+  50%  { left: 130%; }
+  100% { left: 130%; }
+}
+
+/* Ripple effect triggered on click via JS (adds .is-active momentarily) */
+.surprise-btn__ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.surprise-btn__ripple.is-active {
+  animation: ripple-out 0.7s ease-out;
+}
+
+@keyframes ripple-out {
+  0%   { transform: scale(0);  opacity: 0.55; }
+  100% { transform: scale(18); opacity: 0; }
+}
+
+.surprise-btn.is-hidden {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+}
+
+/* The card itself */
+.card {
+  margin: 3rem auto 0;
+  width: min(90vw, 380px);
+  height: 460px;
+  perspective: 1400px;
+}
+
+.card[hidden] {
+  display: none;
+}
+
+.card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 1.1s var(--ease-premium);
+  animation: card-arrive 0.8s var(--ease-premium) both;
+}
+
+.card.is-flipped .card__inner {
+  transform: rotateY(180deg);
+}
+
+@keyframes card-arrive {
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card__front,
+.card__back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+.card__front {
+  background: linear-gradient(160deg, rgba(255, 123, 171, 0.18), rgba(244, 199, 102, 0.12));
+}
+
+.card__seal {
+  font-size: 2.4rem;
+  color: var(--gold);
+  text-shadow: 0 0 24px rgba(244, 199, 102, 0.8);
+  margin-bottom: 1rem;
+  animation: seal-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes seal-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.card__front-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--paper);
+}
+
+.card__hint {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+}
+
+.card__back {
+  background: linear-gradient(160deg, rgba(166, 130, 255, 0.2), rgba(191, 227, 255, 0.12));
+  transform: rotateY(180deg);
+}
+
+.card__back-title {
+  font-family: var(--font-script);
+  font-size: 2.2rem;
+  color: var(--gold-soft);
+  margin-bottom: 1rem;
+}
+
+.card__back-text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+.card__signature {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--paper);
+}
+
+/* ---------- 13. PHOTO GALLERY ---------- */
+
+.gallery {
+  padding-top: 3rem;
+}
+
+.gallery__hint {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  max-width: 46ch;
+  margin: 0 auto 2.5rem;
+}
+
+.gallery__hint code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.gallery__item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s var(--ease-premium), box-shadow 0.4s var(--ease-premium);
+}
+
+.gallery__item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 50px rgba(20, 12, 36, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.gallery__item img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery__placeholder-icon {
+  font-size: 1.6rem;
+  color: var(--gold);
+  opacity: 0.7;
+}
+
+.gallery__item figcaption {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0;
+  right: 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* ---------- 14. FOOTER ---------- */
+
+.footer {
+  padding: 2rem 1.5rem 4rem;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.footer__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 320px;
+  margin: 0 auto 2rem;
+}
+
+.footer__divider span:not(.footer__divider-icon) {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.footer__divider-icon {
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.footer__signature {
+  font-family: var(--font-script);
+  font-size: 2rem;
+  color: var(--gold-soft);
+  margin-bottom: 0.5rem;
+}
+
+.footer__note {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.footer__heart {
+  color: var(--magenta);
+  display: inline-block;
+  animation: footer-heart-beat 1.4s ease-in-out infinite;
+}
+
+@keyframes footer-heart-beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+.footer__top-btn {
+  margin-top: 1.75rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  color: var(--paper);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease-premium), background 0.3s ease;
+}
+
+.footer__top-btn:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.footer__year {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+/* ---------- 15. MUSIC PLAYER ---------- */
+
+.music-player {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 50;
+}
+
+.music-player__btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--gold), #e2a93f);
+  color: var(--midnight-900);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(244, 199, 102, 0.45);
+  transition: transform 0.3s var(--ease-premium), box-shadow 0.3s ease;
+}
+
+.music-player__btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 26px rgba(244, 199, 102, 0.65);
+}
+
+.music-player__btn.is-playing .music-player__icon {
+  animation: note-bounce 1s ease-in-out infinite;
+}
+
+@keyframes note-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ---------- 16. RESPONSIVE ADJUSTMENTS ---------- */
+
+@media (min-width: 640px) {
+  .gallery__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  section {
+    padding: 4.5rem 1.25rem;
+  }
+
+  .card {
+    height: 420px;
+  }
+
+  .music-player {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .footer__signature {
+    font-size: 1.6rem;
+  }
+}
